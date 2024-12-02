@@ -1,8 +1,13 @@
 import fetch from "node-fetch";
+import express from "express";
 
 const WIT_AI_TOKEN = 'HCYM3HMI4A54QLUO6R6CLE5TXWQQQCEX'; // Wit.ai Token
-const TELEGRAM_BOT_TOKEN = '7610856277:AAFDCEdVDUlXeAPB4hH9ZD9m9SOaEksZZbg'; // Replace with your Telegram bot token
+const TELEGRAM_BOT_TOKEN = '7610856277:AAFDCEdVDUlXeAPB4hH9ZD9m9SOaEksZZbg'; // Telegram Bot Token
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/`;
+const PORT = process.env.PORT || 3000;
+
+const app = express();
+app.use(express.json());
 
 // Function to interact with Wit.ai API
 async function getWitResponse(message) {
@@ -43,14 +48,15 @@ async function sendMessage(chatId, text) {
   }
 }
 
-// Function to handle incoming updates from Telegram
-async function handleUpdate(update) {
+// Webhook handler for Telegram updates
+app.post(`/webhook/${TELEGRAM_BOT_TOKEN}`, async (req, res) => {
+  const update = req.body;
   const chatId = update.message.chat.id;
   const userInput = update.message.text;
 
   if (userInput.toLowerCase() === 'exit') {
     await sendMessage(chatId, 'Goodbye!');
-    return;
+    return res.sendStatus(200);
   }
 
   const witResponse = await getWitResponse(userInput);
@@ -62,31 +68,30 @@ async function handleUpdate(update) {
   } else {
     await sendMessage(chatId, "I couldn't understand that.");
   }
+
+  res.sendStatus(200);
+});
+
+// Set webhook for Telegram
+async function setWebhook() {
+  try {
+    const url = `${process.env.BASE_URL}/webhook/${TELEGRAM_BOT_TOKEN}`;
+    const response = await fetch(`${TELEGRAM_API_URL}setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    const data = await response.json();
+    console.log("Webhook setup response:", data);
+  } catch (error) {
+    console.error("Error setting webhook:", error.message);
+  }
 }
 
-// Function to set up webhook or polling (simplified polling for now)
-async function main() {
-  console.log("Bot is running...");
-
-  // Poll for updates every 3 seconds
-  setInterval(async () => {
-    try {
-      const response = await fetch(`${TELEGRAM_API_URL}getUpdates`);
-      const data = await response.json();
-      if (data.result && data.result.length) {
-        for (const update of data.result) {
-          await handleUpdate(update);
-        }
-        // Acknowledge updates by sending the last update ID
-        const lastUpdateId = data.result[data.result.length - 1].update_id;
-        await fetch(`${TELEGRAM_API_URL}getUpdates?offset=${lastUpdateId + 1}`);
-      }
-    } catch (error) {
-      console.error("Error fetching updates:", error.message);
-    }
-  }, 3000);
-}
-
-main().catch(console.error);
+// Start the server
+app.listen(PORT, async () => {
+  console.log(`Server is running on port ${PORT}`);
+  await setWebhook();
+});
 
 
