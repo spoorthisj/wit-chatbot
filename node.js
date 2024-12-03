@@ -5,6 +5,12 @@ import dotenv from 'dotenv';
 // Load environment variables from the .env file
 dotenv.config();
 
+// Ensure the necessary environment variables are loaded
+if (!process.env.BASE_URL || !process.env.WIT_AI_TOKEN || !process.env.TELEGRAM_BOT_TOKEN) {
+  console.error("Missing required environment variables.");
+  process.exit(1);  // Exit if environment variables are missing
+}
+
 const WIT_AI_TOKEN = process.env.WIT_AI_TOKEN;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/`;
@@ -112,5 +118,6 @@ app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   await setWebhook(); // Set webhook when the server starts
 });
+
 
 
