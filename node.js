@@ -1,10 +1,11 @@
 import fetch from "node-fetch";
 import express from "express";
 
-const WIT_AI_TOKEN = 'HCYM3HMI4A54QLUO6R6CLE5TXWQQQCEX'; // Wit.ai Token
-const TELEGRAM_BOT_TOKEN = '7610856277:AAFDCEdVDUlXeAPB4hH9ZD9m9SOaEksZZbg'; // Telegram Bot Token
+const WIT_AI_TOKEN = process.env.WIT_AI_TOKEN;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/`;
 const PORT = process.env.PORT || 3000;
+
 
 const app = express();
 app.use(express.json());
