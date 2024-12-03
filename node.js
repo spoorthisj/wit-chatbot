@@ -1,10 +1,15 @@
-import fetch from "node-fetch";
-import express from "express";
+import fetch from 'node-fetch';
+import express from 'express';
+import dotenv from 'dotenv';
 
-const WIT_AI_TOKEN = 'HCYM3HMI4A54QLUO6R6CLE5TXWQQQCEX'; // Wit.ai Token
-const TELEGRAM_BOT_TOKEN = '7610856277:AAFDCEdVDUlXeAPB4hH9ZD9m9SOaEksZZbg'; // Telegram Bot Token
+// Load environment variables from the .env file
+dotenv.config();
+
+const WIT_AI_TOKEN = process.env.WIT_AI_TOKEN;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/`;
 const PORT = process.env.PORT || 3000;
+const BASE_URL = process.env.BASE_URL;
 
 const app = express();
 app.use(express.json());
@@ -33,7 +38,7 @@ async function getWitResponse(message) {
 // Function to send messages to Telegram
 async function sendMessage(chatId, text) {
   try {
-    await fetch(`${TELEGRAM_API_URL}sendMessage`, {
+    const response = await fetch(`${TELEGRAM_API_URL}sendMessage`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -43,6 +48,10 @@ async function sendMessage(chatId, text) {
         text: text,
       }),
     });
+
+    if (!response.ok) {
+      throw new Error(`Error sending message: ${response.statusText}`);
+    }
   } catch (error) {
     console.error("Error sending message:", error.message);
   }
@@ -51,8 +60,14 @@ async function sendMessage(chatId, text) {
 // Webhook handler for Telegram updates
 app.post(`/webhook/${TELEGRAM_BOT_TOKEN}`, async (req, res) => {
   const update = req.body;
+  if (!update.message) {
+    return res.sendStatus(400); // Bad request if no message is found
+  }
+
   const chatId = update.message.chat.id;
   const userInput = update.message.text;
+
+  console.log(`Received message: ${userInput}`); // Log the incoming message for debugging
 
   if (userInput.toLowerCase() === 'exit') {
     await sendMessage(chatId, 'Goodbye!');
@@ -69,29 +84,33 @@ app.post(`/webhook/${TELEGRAM_BOT_TOKEN}`, async (req, res) => {
     await sendMessage(chatId, "I couldn't understand that.");
   }
 
-  res.sendStatus(200);
+  res.sendStatus(200); // Send acknowledgment to Telegram that the request was processed
 });
 
 // Set webhook for Telegram
 async function setWebhook() {
   try {
-    const url = `${process.env.BASE_URL}/webhook/${TELEGRAM_BOT_TOKEN}`;
+    const url = `${BASE_URL}/webhook/${TELEGRAM_BOT_TOKEN}`;
     const response = await fetch(`${TELEGRAM_API_URL}setWebhook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url }),
     });
     const data = await response.json();
-    console.log("Webhook setup response:", data);
+    if (data.ok) {
+      console.log("Webhook set successfully.");
+    } else {
+      console.error("Failed to set webhook:", data.description);
+    }
   } catch (error) {
     console.error("Error setting webhook:", error.message);
   }
 }
 
-
+// Start the server and set the webhook
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
-  await setWebhook();
+  await setWebhook(); // Set webhook when the server starts
 });
 
 
