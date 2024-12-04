@@ -63,7 +63,7 @@ async function sendMessage(chatId, text) {
   }
 }
 
-// Webhook handler for Telegram updates
+// Updated webhook handler for Telegram updates
 app.post(`/webhook/${TELEGRAM_BOT_TOKEN}`, async (req, res) => {
   const update = req.body;
   if (!update.message) {
@@ -73,19 +73,16 @@ app.post(`/webhook/${TELEGRAM_BOT_TOKEN}`, async (req, res) => {
   const chatId = update.message.chat.id;
   const userInput = update.message.text;
 
-  console.log(`Received message: ${userInput}`); // Log the incoming message for debugging
-
-  if (userInput.toLowerCase() === 'exit') {
-    await sendMessage(chatId, 'Goodbye!');
-    return res.sendStatus(200);
-  }
+  console.log(`Received message: ${userInput}`); // Log the incoming message
 
   const witResponse = await getWitResponse(userInput);
 
   if (witResponse.error) {
     await sendMessage(chatId, 'Sorry, something went wrong.');
-  } else if (witResponse.entities) {
-    await sendMessage(chatId, `Response: ${JSON.stringify(witResponse.entities, null, 2)}`);
+  } else if (witResponse.entities && witResponse.entities['hi:exams']) {
+    // Example: handle 'hi:exams' intent
+    const responseMessage = witResponse.entities['hi:exams'][0]?.value || "Hello!";
+    await sendMessage(chatId, responseMessage);
   } else {
     await sendMessage(chatId, "I couldn't understand that.");
   }
@@ -124,6 +121,7 @@ app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   await setWebhook(); // Set webhook when the server starts
 });
+
 
 
 
