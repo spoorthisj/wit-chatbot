@@ -77,6 +77,9 @@ app.post(`/webhook/${TELEGRAM_BOT_TOKEN}`, async (req, res) => {
 
   const witResponse = await getWitResponse(userInput);
 
+  // Debugging: Log the entire Wit.ai response
+  console.log("Wit.ai Response:", JSON.stringify(witResponse, null, 2));
+
   if (witResponse.error) {
     await sendMessage(chatId, 'Sorry, something went wrong.');
   } else if (witResponse.entities && witResponse.entities['hi:exams']) {
@@ -121,6 +124,7 @@ app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   await setWebhook(); // Set webhook when the server starts
 });
+
 
 
 
