@@ -34,7 +34,12 @@ async function getWitResponse(message) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    // Log the full response from Wit.ai
+    console.log('Wit.ai Response:', JSON.stringify(data, null, 2));
+
+    return data;
   } catch (error) {
     console.error("Error fetching Wit.ai response:", error.message);
     return { error: "Failed to get response from Wit.ai." };
@@ -75,19 +80,21 @@ app.post(`/webhook/${TELEGRAM_BOT_TOKEN}`, async (req, res) => {
 
   console.log(`Received message: ${userInput}`); // Log the incoming message
 
+  // Fetch the response from Wit.ai
   const witResponse = await getWitResponse(userInput);
-
-  // Debugging: Log the entire Wit.ai response
-  console.log("Wit.ai Response:", JSON.stringify(witResponse, null, 2));
 
   if (witResponse.error) {
     await sendMessage(chatId, 'Sorry, something went wrong.');
-  } else if (witResponse.entities && witResponse.entities['hi:exams']) {
-    // Example: handle 'hi:exams' intent
-    const responseMessage = witResponse.entities['hi:exams'][0]?.value || "Hello!";
-    await sendMessage(chatId, responseMessage);
   } else {
-    await sendMessage(chatId, "I couldn't understand that.");
+    // Check if the entities are present and process them
+    const entities = witResponse.entities;
+
+    if (entities && entities['hi:exams']) {
+      const responseMessage = entities['hi:exams'][0]?.value || "Hello!";
+      await sendMessage(chatId, responseMessage);
+    } else {
+      await sendMessage(chatId, "I couldn't understand that.");
+    }
   }
 
   res.sendStatus(200); // Send acknowledgment to Telegram that the request was processed
@@ -124,6 +131,9 @@ app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   await setWebhook(); // Set webhook when the server starts
 });
+
+
+
 
 
 
