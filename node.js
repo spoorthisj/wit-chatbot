@@ -2,8 +2,8 @@ import fetch from 'node-fetch';
 import express from 'express';
 import dotenv from 'dotenv';
 
-// Load environment variables from the .env file
-dotenv.config();
+// Load environment variables from the custom .env file
+dotenv.config({ path: 'witt.env' });
 
 // Ensure the necessary environment variables are loaded
 if (!process.env.BASE_URL || !process.env.WIT_AI_TOKEN || !process.env.TELEGRAM_BOT_TOKEN) {
@@ -118,6 +118,5 @@ app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   await setWebhook(); // Set webhook when the server starts
 });
-
 
 
