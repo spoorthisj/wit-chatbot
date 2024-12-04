@@ -93,6 +93,12 @@ app.post(`/webhook/${TELEGRAM_BOT_TOKEN}`, async (req, res) => {
   res.sendStatus(200); // Send acknowledgment to Telegram that the request was processed
 });
 
+// General webhook route
+app.post('/webhook', (req, res) => {
+  console.log('General webhook received:', req.body);  // Log incoming request for debugging
+  res.sendStatus(200); // Respond with 200 OK to confirm receipt
+});
+
 // Set webhook for Telegram
 async function setWebhook() {
   try {
