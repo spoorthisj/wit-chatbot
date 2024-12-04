@@ -2,20 +2,20 @@ import fetch from 'node-fetch';
 import express from 'express';
 import dotenv from 'dotenv';
 
-// Load environment variables from the custom .env file
+// Load environment variables from .env file if available
 dotenv.config({ path: 'witt.env' });
-
-// Ensure the necessary environment variables are loaded
-if (!process.env.BASE_URL || !process.env.WIT_AI_TOKEN || !process.env.TELEGRAM_BOT_TOKEN) {
-  console.error("Missing required environment variables.");
-  process.exit(1);  // Exit if environment variables are missing
-}
 
 const WIT_AI_TOKEN = process.env.WIT_AI_TOKEN;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const BASE_URL = process.env.BASE_URL;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/`;
 const PORT = process.env.PORT || 3000;
-const BASE_URL = process.env.BASE_URL;
+
+// Ensure the necessary environment variables are loaded
+if (!WIT_AI_TOKEN || !TELEGRAM_BOT_TOKEN || !BASE_URL) {
+  console.error("Missing required environment variables. Please set WIT_AI_TOKEN, TELEGRAM_BOT_TOKEN, and BASE_URL.");
+  process.exit(1);  // Exit if environment variables are missing
+}
 
 const app = express();
 app.use(express.json());
@@ -127,8 +127,3 @@ app.listen(PORT, async () => {
 
 
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 1f4dabbf4043eb6cb375ad64d55cf8266586ccd2
