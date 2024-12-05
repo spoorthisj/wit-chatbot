@@ -72,6 +72,12 @@ app.post(`/webhook/${TELEGRAM_BOT_TOKEN}`, async (req, res) => {
   res.sendStatus(200);
 });
 
+// General webhook route to handle other requests
+app.post('/webhook/general', async (req, res) => {
+  console.log('General webhook data received:', req.body);
+  res.status(200).send('General webhook processed');
+});
+
 async function setWebhook() {
   try {
     const response = await fetch(`${TELEGRAM_API_URL}setWebhook`, {
@@ -91,6 +97,7 @@ app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   await setWebhook();
 });
+
 
 
 
